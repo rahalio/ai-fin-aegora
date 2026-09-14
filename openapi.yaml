@@ -1,0 +1,770 @@
+openapi: 3.0.3
+info:
+  title: Aegora
+  version: 0.1.0
+  description: >-
+    Dual-path retail-banking action plane: personalised next-best offers and streaming fraud/cyber protection under one purpose-tagged ethical data contract.
+  x-product-slug: ai-fin-aegora
+  x-source: ai-in-financial/ai-in-financenatalia-busa/
+servers:
+  - url: https://api.example.com
+tags:
+  - name: Events
+    description: Purpose-tagged customer event ingestion
+  - name: Offers
+    description: Help-channel next-best financial offers
+  - name: Alerts
+    description: Protect-channel geo and behavioural alerts
+  - name: Holds
+    description: Provisional card and access holds
+  - name: Cases
+    description: Network intrusion investigation cases
+  - name: Policies
+    description: Cross-purpose policy broker rules
+  - name: Models
+    description: Help and protect model registry
+  - name: Audits
+    description: Period audit exports
+paths:
+  /v1/events:
+    post:
+      operationId: ingestEvent
+      tags: [Events]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventIngest"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeEvent"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+  /v1/offers:
+    get:
+      operationId: listOffers
+      tags: [Offers]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: customerId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListEnvelopeOffer"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createOfferDecision
+      tags: [Offers]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeOffer"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+  /v1/offers/{offerId}:
+    parameters:
+      - $ref: "#/components/parameters/OfferId"
+    get:
+      operationId: getOffer
+      tags: [Offers]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeOffer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/offers/{offerId}/overrides:
+    parameters:
+      - $ref: "#/components/parameters/OfferId"
+    post:
+      operationId: overrideOffer
+      tags: [Offers]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OverrideCreate"
+      responses:
+        "201":
+          description: Override recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeOverride"
+  /v1/alerts:
+    get:
+      operationId: listAlerts
+      tags: [Alerts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, investigating, resolved, falsePositive] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListEnvelopeProtectAlert"
+  /v1/alerts/{alertId}:
+    parameters:
+      - $ref: "#/components/parameters/AlertId"
+    get:
+      operationId: getAlert
+      tags: [Alerts]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeProtectAlert"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/holds:
+    get:
+      operationId: listHolds
+      tags: [Holds]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListEnvelopeProvisionalHold"
+    post:
+      operationId: createHold
+      tags: [Holds]
+      security:
+        - ApiKeyAuth: []
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HoldCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeProvisionalHold"
+  /v1/holds/{holdId}/release:
+    parameters:
+      - $ref: "#/components/parameters/HoldId"
+    post:
+      operationId: releaseHold
+      tags: [Holds]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HoldRelease"
+      responses:
+        "200":
+          description: Released
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeProvisionalHold"
+  /v1/cases:
+    get:
+      operationId: listCases
+      tags: [Cases]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListEnvelopeIntrusionCase"
+    post:
+      operationId: openCase
+      tags: [Cases]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeIntrusionCase"
+  /v1/policies:
+    get:
+      operationId: listPolicies
+      tags: [Policies]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListEnvelopePolicyRule"
+    post:
+      operationId: createPolicy
+      tags: [Policies]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyRuleCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopePolicyRule"
+  /v1/models:
+    get:
+      operationId: listModels
+      tags: [Models]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListEnvelopeModelVersion"
+  /v1/models/{modelId}/promote:
+    parameters:
+      - $ref: "#/components/parameters/ModelId"
+    post:
+      operationId: promoteModel
+      tags: [Models]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Promoted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeModelVersion"
+  /v1/audits/exports:
+    post:
+      operationId: createAuditExport
+      tags: [Audits]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuditExportCreate"
+      responses:
+        "201":
+          description: Export created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelopeAuditExport"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+
+    OfferId:
+      name: offerId
+      in: path
+      required: true
+      schema: { type: string }
+    AlertId:
+      name: alertId
+      in: path
+      required: true
+      schema: { type: string }
+    HoldId:
+      name: holdId
+      in: path
+      required: true
+      schema: { type: string }
+    ModelId:
+      name: modelId
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    UnprocessableEntity:
+      description: Unprocessable entity
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+  schemas:
+    ResponseMeta:
+      type: object
+      required: [requestId, timestamp]
+      properties:
+        requestId: { type: string }
+        timestamp: { type: string, format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+
+    Event:
+      type: object
+      required: [id, customerId, purpose, occurredAt]
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        purpose: { type: string, enum: [help, protect] }
+        eventType: { type: string }
+        occurredAt: { type: string, format: date-time }
+        payload: { type: object, additionalProperties: true }
+    EventIngest:
+      type: object
+      required: [customerId, purpose, eventType, occurredAt]
+      properties:
+        customerId: { type: string }
+        purpose: { type: string, enum: [help, protect] }
+        eventType: { type: string }
+        occurredAt: { type: string, format: date-time }
+        payload: { type: object, additionalProperties: true }
+    Offer:
+      type: object
+      required: [id, customerId, status]
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        productCode: { type: string }
+        status: { type: string, enum: [ranked, delivered, blocked, overridden] }
+        explanation: { type: string }
+        consentBasisPresent: { type: boolean }
+        score: { type: number }
+    OfferCreate:
+      type: object
+      required: [customerId]
+      properties:
+        customerId: { type: string }
+        channel: { type: string }
+    Override:
+      type: object
+      required: [id, offerId, reasonCode]
+      properties:
+        id: { type: string }
+        offerId: { type: string }
+        reasonCode: { type: string }
+        note: { type: string }
+    OverrideCreate:
+      type: object
+      required: [reasonCode]
+      properties:
+        reasonCode: { type: string }
+        note: { type: string }
+        action: { type: string, enum: [veto, soften, forceDeliver] }
+    ProtectAlert:
+      type: object
+      required: [id, customerId, status]
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        alertType: { type: string, enum: [geoCluster, cardClone, other] }
+        status: { type: string, enum: [open, investigating, resolved, falsePositive] }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        context: { type: object, additionalProperties: true }
+    ProvisionalHold:
+      type: object
+      required: [id, customerId, status]
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        alertId: { type: string }
+        status: { type: string, enum: [active, released, expired] }
+        reason: { type: string }
+    HoldCreate:
+      type: object
+      required: [customerId, reason]
+      properties:
+        customerId: { type: string }
+        alertId: { type: string }
+        reason: { type: string }
+    HoldRelease:
+      type: object
+      required: [reasonCode]
+      properties:
+        reasonCode: { type: string }
+        note: { type: string }
+    IntrusionCase:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        hostIds: { type: array, items: { type: string } }
+        status: { type: string, enum: [open, investigating, closed] }
+        summary: { type: string }
+    CaseCreate:
+      type: object
+      required: [summary]
+      properties:
+        hostIds: { type: array, items: { type: string } }
+        summary: { type: string }
+        alertId: { type: string }
+    PolicyRule:
+      type: object
+      required: [id, name, enabled]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        enabled: { type: boolean }
+        fromPurpose: { type: string, enum: [help, protect] }
+        toPurpose: { type: string, enum: [help, protect] }
+        effect: { type: string, enum: [allow, deny, requireReview] }
+    PolicyRuleCreate:
+      type: object
+      required: [name, fromPurpose, toPurpose, effect]
+      properties:
+        name: { type: string }
+        fromPurpose: { type: string, enum: [help, protect] }
+        toPurpose: { type: string, enum: [help, protect] }
+        effect: { type: string, enum: [allow, deny, requireReview] }
+        enabled: { type: boolean, default: true }
+    ModelVersion:
+      type: object
+      required: [id, channel, status]
+      properties:
+        id: { type: string }
+        channel: { type: string, enum: [help, protect] }
+        name: { type: string }
+        status: { type: string, enum: [candidate, production, retired] }
+        lineage: { type: string }
+    AuditExport:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [pending, ready, failed] }
+        periodFrom: { type: string, format: date-time }
+        periodTo: { type: string, format: date-time }
+        downloadUri: { type: string, format: uri }
+    AuditExportCreate:
+      type: object
+      required: [periodFrom, periodTo]
+      properties:
+        periodFrom: { type: string, format: date-time }
+        periodTo: { type: string, format: date-time }
+        purpose: { type: string, enum: [help, protect, both] }
+
+    DataEnvelopeEvent:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/Event"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeEvent:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Event"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeOffer:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/Offer"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeOffer:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Offer"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeOverride:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/Override"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeOverride:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Override"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeProtectAlert:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/ProtectAlert"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeProtectAlert:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/ProtectAlert"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeProvisionalHold:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/ProvisionalHold"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeProvisionalHold:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/ProvisionalHold"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeIntrusionCase:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/IntrusionCase"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeIntrusionCase:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/IntrusionCase"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopePolicyRule:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/PolicyRule"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopePolicyRule:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/PolicyRule"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeModelVersion:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/ModelVersion"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeModelVersion:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/ModelVersion"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
+    DataEnvelopeAuditExport:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/AuditExport"
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ListEnvelopeAuditExport:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/AuditExport"
+            nextCursor: { type: string }
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+
