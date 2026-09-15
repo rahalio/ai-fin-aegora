@@ -1,0 +1,89 @@
+openapi: 3.1.0
+info:
+  title: Alerts schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    AlertId:
+      type: string
+      pattern: '^alt_[0-9A-HJKMNP-TV-Z]{26}$'
+    AlertStatus:
+      type: string
+      enum: [open, investigating, resolved, falsePositive, suppressed]
+    ProtectAlert:
+      type: object
+      required:
+        - alertId
+        - customerId
+        - status
+        - raisedAt
+        - createdAt
+      properties:
+        alertId:
+          $ref: '#/components/schemas/AlertId'
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        alertType:
+          type: string
+          enum: [geoCluster, cardClone, other]
+        status:
+          $ref: '#/components/schemas/AlertStatus'
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        slaDeadlineAt:
+          type: string
+          format: date-time
+        slaBreached:
+          type: boolean
+        clusterCentroid:
+          type: object
+          additionalProperties: true
+        convexHull:
+          type: object
+          additionalProperties: true
+        priorVenues:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        raisedAt:
+          type: string
+          format: date-time
+    AlertAction:
+      type: object
+      properties:
+        note:
+          type: string
+        reasonCode:
+          type: string
+    AlertListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProtectAlert'
+    AlertResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ProtectAlert'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    AlertListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AlertListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

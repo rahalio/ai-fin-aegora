@@ -1,0 +1,156 @@
+openapi: 3.1.0
+info:
+  title: Aegora Policies API
+  version: 0.1.0
+  description: Cross-purpose policy broker (BR-4, BR-12). Silent reuse is never allowed.
+  x-domain: policies
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.aegora.local
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Policies
+paths:
+  /v1/policies:
+    get:
+      operationId: listPolicies
+      tags: [Policies]
+      x-repository: Policy
+      x-dynamodb:
+        entityType: POLICY
+        pkPatternTemplate: "POLICY#${policyId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: [enabled]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Policies
+          content:
+            application/json:
+              schema:
+                $ref: ./policies.schemas.yaml#/components/schemas/PolicyListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createPolicy
+      tags: [Policies]
+      x-repository: Policy
+      x-dynamodb:
+        entityType: POLICY
+        pkPatternTemplate: "POLICY#${policyId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./policies.schemas.yaml#/components/schemas/PolicyRuleCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./policies.schemas.yaml#/components/schemas/PolicyResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/policies/{policyId}:
+    get:
+      operationId: getPolicy
+      tags: [Policies]
+      x-repository: Policy
+      x-dynamodb:
+        entityType: POLICY
+        pkPatternTemplate: "POLICY#${policyId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./policies.schemas.yaml#/components/schemas/PolicyId
+      responses:
+        '200':
+          description: Policy
+          content:
+            application/json:
+              schema:
+                $ref: ./policies.schemas.yaml#/components/schemas/PolicyResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/policies/{policyId}/approve:
+    post:
+      operationId: approvePolicy
+      tags: [Policies]
+      x-repository: Policy
+      x-dynamodb:
+        entityType: POLICY
+        pkPatternTemplate: "POLICY#${policyId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./policies.schemas.yaml#/components/schemas/PolicyId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Approval recorded (dual-approve)
+          content:
+            application/json:
+              schema:
+                $ref: ./policies.schemas.yaml#/components/schemas/PolicyResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/policies/{policyId}/disable:
+    post:
+      operationId: disablePolicy
+      tags: [Policies]
+      x-repository: Policy
+      x-dynamodb:
+        entityType: POLICY
+        pkPatternTemplate: "POLICY#${policyId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./policies.schemas.yaml#/components/schemas/PolicyId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Disabled
+          content:
+            application/json:
+              schema:
+                $ref: ./policies.schemas.yaml#/components/schemas/PolicyResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Cases schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    CaseId:
+      type: string
+      pattern: '^cse_[0-9A-HJKMNP-TV-Z]{26}$'
+    CaseStatus:
+      type: string
+      enum: [open, investigating, closed]
+    IntrusionCase:
+      type: object
+      required:
+        - caseId
+        - status
+        - summary
+        - createdAt
+      properties:
+        caseId:
+          $ref: '#/components/schemas/CaseId'
+        hostIds:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/CaseStatus'
+        summary:
+          type: string
+        hostTimeline:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Aggregated host timeline. Raw PCAP is never included.
+        assignedTo:
+          type: string
+        siemTicketId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CaseCreate:
+      type: object
+      required: [summary]
+      properties:
+        hostIds:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+        alertId:
+          type: string
+    CaseAssign:
+      type: object
+      required: [assignedTo]
+      properties:
+        assignedTo:
+          type: string
+    CaseClose:
+      type: object
+      properties:
+        resolution:
+          type: string
+        siemTicketId:
+          type: string
+    CaseListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntrusionCase'
+    CaseResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/IntrusionCase'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    CaseListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/CaseListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

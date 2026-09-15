@@ -1,0 +1,272 @@
+openapi: 3.1.0
+info:
+  title: Aegora Offers API
+  version: 0.1.0
+  description: Help-channel next-best offers, consent gates, and RM overrides.
+  x-domain: offers
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.aegora.local
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Offers
+  - name: Overrides
+  - name: Consent
+paths:
+  /v1/offers:
+    get:
+      operationId: listOffers
+      tags: [Offers]
+      x-repository: Offer
+      x-dynamodb: &offerDdb
+        entityType: OFFER
+        pkPatternTemplate: "OFFER#${offerId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "CUSTOMER#${customerId}"
+        gsi1SKPatternTemplate: "OFFER#${offerId}"
+        filterFields: [status]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: customerId
+          in: query
+          schema:
+            $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        - name: status
+          in: query
+          schema:
+            $ref: ./offers.schemas.yaml#/components/schemas/OfferStatus
+      responses:
+        '200':
+          description: Offers
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OfferListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createOffer
+      tags: [Offers]
+      x-repository: Offer
+      x-dynamodb: *offerDdb
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./offers.schemas.yaml#/components/schemas/OfferCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OfferResponse
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/offers/{offerId}:
+    get:
+      operationId: getOffer
+      tags: [Offers]
+      x-repository: Offer
+      x-dynamodb: *offerDdb
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            $ref: ./offers.schemas.yaml#/components/schemas/OfferId
+      responses:
+        '200':
+          description: Offer
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OfferResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/offers/{offerId}/deliver:
+    post:
+      operationId: deliverOffer
+      tags: [Offers]
+      summary: Deliver offer if consent basis is present; otherwise 422 (help-only block)
+      x-repository: Offer
+      x-dynamodb: *offerDdb
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            $ref: ./offers.schemas.yaml#/components/schemas/OfferId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./offers.schemas.yaml#/components/schemas/OfferDeliver
+      responses:
+        '200':
+          description: Delivered
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OfferResponse
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/offers/{offerId}/block:
+    post:
+      operationId: blockOffer
+      tags: [Offers]
+      x-repository: Offer
+      x-dynamodb: *offerDdb
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            $ref: ./offers.schemas.yaml#/components/schemas/OfferId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Blocked
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OfferResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/offers/{offerId}/overrides:
+    get:
+      operationId: listOfferOverrides
+      tags: [Overrides]
+      x-repository: Override
+      x-dynamodb: &overrideDdb
+        entityType: OVERRIDE
+        pkPatternTemplate: "OVERRIDE#${overrideId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "OFFER#${offerId}"
+        gsi1SKPatternTemplate: "OVERRIDE#${overrideId}"
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            $ref: ./offers.schemas.yaml#/components/schemas/OfferId
+      responses:
+        '200':
+          description: Overrides
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OverrideListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: overrideOffer
+      tags: [Overrides]
+      x-repository: Override
+      x-dynamodb: *overrideDdb
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            $ref: ./offers.schemas.yaml#/components/schemas/OfferId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./offers.schemas.yaml#/components/schemas/OverrideCreate
+      responses:
+        '201':
+          description: Override recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/OverrideResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/consent-records:
+    get:
+      operationId: listConsentRecords
+      tags: [Consent]
+      x-repository: ConsentRecord
+      x-dynamodb: &consentDdb
+        entityType: CONSENT
+        pkPatternTemplate: "CONSENT#${consentRecordId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "CUSTOMER#${customerId}"
+        gsi1SKPatternTemplate: "CONSENT#${consentRecordId}"
+        filterFields: [purpose]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: customerId
+          in: query
+          schema:
+            $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+      responses:
+        '200':
+          description: Consent records
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/ConsentListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createConsentRecord
+      tags: [Consent]
+      x-repository: ConsentRecord
+      x-dynamodb: *consentDdb
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./offers.schemas.yaml#/components/schemas/ConsentRecordCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./offers.schemas.yaml#/components/schemas/ConsentRecordResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

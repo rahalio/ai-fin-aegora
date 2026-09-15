@@ -1,0 +1,268 @@
+openapi: 3.1.0
+info:
+  title: Aegora Holds API
+  version: 0.1.0
+  description: Provisional holds and time-boxed care disputes (BR-6).
+  x-domain: holds
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.aegora.local
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Holds
+  - name: Disputes
+paths:
+  /v1/holds:
+    get:
+      operationId: listHolds
+      tags: [Holds]
+      x-repository: Hold
+      x-dynamodb:
+        entityType: HOLD
+        pkPatternTemplate: "HOLD#${holdId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "CUSTOMER#${customerId}"
+        gsi1SKPatternTemplate: "HOLD#${holdId}"
+        filterFields: [status]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: customerId
+          in: query
+          schema:
+            $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        - name: status
+          in: query
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/HoldStatus
+      responses:
+        '200':
+          description: Holds
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/HoldListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createHold
+      tags: [Holds]
+      x-repository: Hold
+      x-dynamodb:
+        entityType: HOLD
+        pkPatternTemplate: "HOLD#${holdId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./holds.schemas.yaml#/components/schemas/HoldCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/HoldResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/holds/{holdId}:
+    get:
+      operationId: getHold
+      tags: [Holds]
+      x-repository: Hold
+      x-dynamodb:
+        entityType: HOLD
+        pkPatternTemplate: "HOLD#${holdId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/HoldId
+      responses:
+        '200':
+          description: Hold
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/HoldResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/holds/{holdId}/confirm:
+    post:
+      operationId: confirmHold
+      tags: [Holds]
+      x-repository: Hold
+      x-dynamodb:
+        entityType: HOLD
+        pkPatternTemplate: "HOLD#${holdId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/HoldId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Confirmed
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/HoldResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/holds/{holdId}/release:
+    post:
+      operationId: releaseHold
+      tags: [Holds]
+      x-repository: Hold
+      x-dynamodb:
+        entityType: HOLD
+        pkPatternTemplate: "HOLD#${holdId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/HoldId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./holds.schemas.yaml#/components/schemas/HoldRelease
+      responses:
+        '200':
+          description: Released
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/HoldResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/holds/{holdId}/disputes:
+    get:
+      operationId: listHoldDisputes
+      tags: [Disputes]
+      x-repository: Dispute
+      x-dynamodb:
+        entityType: DISPUTE
+        pkPatternTemplate: "DISPUTE#${disputeId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "HOLD#${holdId}"
+        gsi1SKPatternTemplate: "DISPUTE#${disputeId}"
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/HoldId
+      responses:
+        '200':
+          description: Disputes
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/DisputeListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createHoldDispute
+      tags: [Disputes]
+      x-repository: Dispute
+      x-dynamodb:
+        entityType: DISPUTE
+        pkPatternTemplate: "DISPUTE#${disputeId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/HoldId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./holds.schemas.yaml#/components/schemas/DisputeCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/DisputeResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/disputes/{disputeId}/resolve:
+    post:
+      operationId: resolveDispute
+      tags: [Disputes]
+      x-repository: Dispute
+      x-dynamodb:
+        entityType: DISPUTE
+        pkPatternTemplate: "DISPUTE#${disputeId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: disputeId
+          in: path
+          required: true
+          schema:
+            $ref: ./holds.schemas.yaml#/components/schemas/DisputeId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./holds.schemas.yaml#/components/schemas/DisputeResolve
+      responses:
+        '200':
+          description: Resolved
+          content:
+            application/json:
+              schema:
+                $ref: ./holds.schemas.yaml#/components/schemas/DisputeResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

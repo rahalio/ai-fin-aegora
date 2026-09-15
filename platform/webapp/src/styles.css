@@ -1,0 +1,250 @@
+:root {
+  --color-ink: #142018;
+  --color-spine: #1b2420;
+  --color-help-teal: #0d9488;
+  --color-help-wash: #e6f4f1;
+  --color-protect-ember: #c2410c;
+  --color-protect-ground: #1c1410;
+  --color-policy-ribbon: #a16207;
+  --color-brand: #14b8a6;
+  --font-display: "Fraunces", serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --motion-channel: 200ms ease-out;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-help-wash);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+a {
+  color: var(--color-help-teal);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.spine {
+  background: var(--color-spine);
+  color: #e8f4f0;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  color: var(--color-brand);
+  font-size: 1.6rem;
+}
+
+.spine-sub {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.spine nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.spine nav a {
+  color: #d7ece7;
+  text-decoration: none;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.spine nav a.active {
+  background: #24312c;
+  color: var(--color-brand);
+}
+
+.role-switch {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.8rem;
+}
+
+.stage {
+  padding: var(--space-7);
+  background:
+    linear-gradient(90deg, var(--color-help-wash) 0%, transparent 42%),
+    linear-gradient(270deg, #2a1a14 0%, transparent 38%),
+    #f4f1ea;
+}
+
+.panel.protect,
+.panel.broker {
+  color: #f6ece6;
+}
+
+.panel.protect h1,
+.panel.broker h1 {
+  color: #f8d4c4;
+}
+
+.card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin: var(--space-4) 0;
+  box-shadow: 0 1px 0 rgba(20, 32, 24, 0.08);
+}
+
+.card.ember {
+  background: var(--color-protect-ground);
+  color: #f6ece6;
+}
+
+.chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: var(--space-2);
+}
+
+.chip-help {
+  background: var(--color-help-teal);
+  color: #fff;
+}
+
+.chip-protect {
+  background: var(--color-protect-ember);
+  color: #fff;
+}
+
+.policy-ribbon {
+  background: var(--color-policy-ribbon);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-3);
+}
+
+.banner-hold,
+.fail-closed,
+.sla-hot {
+  color: var(--color-protect-ember);
+  font-weight: 600;
+}
+
+.pd-meter {
+  max-width: 320px;
+  margin: var(--space-4) 0;
+}
+
+.pd-track {
+  height: 8px;
+  background: #d9e8e4;
+  border-radius: 99px;
+}
+
+.pd-fill {
+  height: 100%;
+  background: var(--color-help-teal);
+  border-radius: 99px;
+}
+
+.map-stub {
+  height: 120px;
+  border: 1px dashed var(--color-protect-ember);
+  display: grid;
+  place-items: center;
+  margin: var(--space-3) 0;
+}
+
+.split-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th,
+td {
+  text-align: left;
+  padding: var(--space-3);
+  border-bottom: 1px solid #d7e4e0;
+}
+
+.login {
+  max-width: 420px;
+  margin: 12vh auto;
+  background: var(--color-spine);
+  color: #e8f4f0;
+  padding: var(--space-8);
+  border-radius: var(--radius-md);
+}
+
+.login form,
+.login label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+button,
+select,
+input {
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid #c5d5d0;
+}
+
+button {
+  background: var(--color-help-teal);
+  color: #fff;
+  border: 0;
+  margin-right: var(--space-2);
+  cursor: pointer;
+}

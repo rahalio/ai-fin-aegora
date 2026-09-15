@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: Models schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ModelId:
+      type: string
+      pattern: '^mdl_[0-9A-HJKMNP-TV-Z]{26}$'
+    ModelStatus:
+      type: string
+      enum: [candidate, production, retired]
+    ModelVersion:
+      type: object
+      required:
+        - modelId
+        - channel
+        - status
+        - createdAt
+      properties:
+        modelId:
+          $ref: '#/components/schemas/ModelId'
+        channel:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/ModelStatus'
+        lineage:
+          type: string
+        lineageComplete:
+          type: boolean
+        unsafeFeaturePromotion:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ModelCreate:
+      type: object
+      required: [channel, name]
+      properties:
+        channel:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        name:
+          type: string
+        lineage:
+          type: string
+    ModelListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelVersion'
+    ModelResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ModelVersion'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    ModelListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ModelListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

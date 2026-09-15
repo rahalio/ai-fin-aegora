@@ -1,0 +1,156 @@
+openapi: 3.1.0
+info:
+  title: Holds schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    HoldId:
+      type: string
+      pattern: '^hld_[0-9A-HJKMNP-TV-Z]{26}$'
+    DisputeId:
+      type: string
+      pattern: '^dsp_[0-9A-HJKMNP-TV-Z]{26}$'
+    HoldStatus:
+      type: string
+      enum: [active, confirmed, released, expired]
+    DisputeStatus:
+      type: string
+      enum: [open, resolved, expired, escalated]
+    ProvisionalHold:
+      type: object
+      required:
+        - holdId
+        - customerId
+        - status
+        - createdAt
+      properties:
+        holdId:
+          $ref: '#/components/schemas/HoldId'
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        alertId:
+          type: string
+        status:
+          $ref: '#/components/schemas/HoldStatus'
+        reason:
+          type: string
+        customerSafeRationale:
+          type: string
+        disputeWindowEndsAt:
+          type: string
+          format: date-time
+        falsePositive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    HoldCreate:
+      type: object
+      required: [customerId, reason]
+      properties:
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        alertId:
+          type: string
+        reason:
+          type: string
+        customerSafeRationale:
+          type: string
+    HoldRelease:
+      type: object
+      required: [reasonCode]
+      properties:
+        reasonCode:
+          type: string
+        note:
+          type: string
+    Dispute:
+      type: object
+      required:
+        - disputeId
+        - holdId
+        - status
+        - createdAt
+      properties:
+        disputeId:
+          $ref: '#/components/schemas/DisputeId'
+        holdId:
+          $ref: '#/components/schemas/HoldId'
+        status:
+          $ref: '#/components/schemas/DisputeStatus'
+        resolution:
+          type: string
+        windowEndsAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DisputeCreate:
+      type: object
+      properties:
+        note:
+          type: string
+    DisputeResolve:
+      type: object
+      required: [resolution]
+      properties:
+        resolution:
+          type: string
+        restoreService:
+          type: boolean
+    HoldListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvisionalHold'
+    DisputeListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dispute'
+    HoldResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ProvisionalHold'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    HoldListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/HoldListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    DisputeResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Dispute'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    DisputeListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DisputeListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

@@ -1,0 +1,30 @@
+{
+  "name": "aegora",
+  "version": "0.1.0",
+  "description": "Aegora — dual-path retail-banking action plane (help and protect)",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:openapi": "pnpm --filter @aegora/openapi-core lint:domains",
+    "bundle:openapi": "pnpm --filter @aegora/openapi-core bundle:domains",
+    "build": "pnpm --filter @aegora/core build && pnpm --filter @aegora/services build && pnpm --filter @aegora/adapters build && pnpm --filter @aegora/api-server build",
+    "dev:api": "pnpm --filter @aegora/api-server dev",
+    "dev:web": "pnpm --filter @aegora/webapp dev",
+    "codegen:core": "node scripts/sync-codegen-paths.mjs && PYTHONPATH=.codegen/codegen/src python3 -m zero_codegen.cli.main generate --all --layers core --config .codegen/.zero-codegen-merged.json --skip-build",
+    "codegen:identity": "node scripts/sync-codegen-paths.mjs && PYTHONPATH=.codegen/codegen/src python3 -m zero_codegen.cli.main generate --domain identity --config .codegen/.zero-codegen-merged.json --skip-build",
+    "codegen:paths": "node scripts/sync-codegen-paths.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9.0.0"
+  }
+}

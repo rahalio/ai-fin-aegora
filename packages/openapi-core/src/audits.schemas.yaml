@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: Audits schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    AuditId:
+      type: string
+      pattern: '^aud_[0-9A-HJKMNP-TV-Z]{26}$'
+    AuditStatus:
+      type: string
+      enum: [pending, ready, failed]
+    AuditExport:
+      type: object
+      required:
+        - auditId
+        - status
+        - periodFrom
+        - periodTo
+        - createdAt
+      properties:
+        auditId:
+          $ref: '#/components/schemas/AuditId'
+        status:
+          $ref: '#/components/schemas/AuditStatus'
+        periodFrom:
+          type: string
+          format: date-time
+        periodTo:
+          type: string
+          format: date-time
+        purpose:
+          type: string
+          enum: [help, protect, both]
+        incompletePurposeTags:
+          type: integer
+          minimum: 0
+        integrityHash:
+          type: string
+        downloadUri:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuditExportCreate:
+      type: object
+      required: [periodFrom, periodTo]
+      properties:
+        periodFrom:
+          type: string
+          format: date-time
+        periodTo:
+          type: string
+          format: date-time
+        purpose:
+          type: string
+          enum: [help, protect, both]
+    AuditListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditExport'
+    AuditResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AuditExport'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    AuditListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AuditListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

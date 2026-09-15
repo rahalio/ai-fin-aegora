@@ -1,0 +1,10 @@
+---
+description: Never commit or push the local .codegen directory to GitHub
+alwaysApply: true
+---
+
+# `.codegen` is local-only
+
+- `.codegen/` (the `zero_codegen` tool and merged JSON) must **never** be committed or pushed to GitHub.
+- It is listed in `.gitignore` as a safeguard. Do not force-add it.
+- Clone/setup copies the tool onto disk so `pnpm codegen:*` can run; GitHub must not contain it.

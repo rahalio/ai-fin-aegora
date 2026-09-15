@@ -1,0 +1,98 @@
+openapi: 3.1.0
+info:
+  title: Events schemas
+  version: 0.1.0
+  description: Purpose-tagged customer event fabric.
+paths: {}
+components:
+  schemas:
+    EventId:
+      type: string
+      pattern: '^evt_[0-9A-HJKMNP-TV-Z]{26}$'
+    Event:
+      type: object
+      required:
+        - eventId
+        - customerId
+        - purpose
+        - eventType
+        - occurredAt
+        - createdAt
+      properties:
+        eventId:
+          $ref: '#/components/schemas/EventId'
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        purpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        eventType:
+          type: string
+          enum:
+            - cardAuthorisation
+            - appSession
+            - transaction
+            - networkFlow
+            - consentChange
+        occurredAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+          description: Channel-safe payload. Network packet dumps are not stored here.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    EventIngest:
+      type: object
+      required:
+        - customerId
+        - purpose
+        - eventType
+        - occurredAt
+      properties:
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        purpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        eventType:
+          type: string
+          enum:
+            - cardAuthorisation
+            - appSession
+            - transaction
+            - networkFlow
+            - consentChange
+        occurredAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+    EventListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+    EventResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Event'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    EventListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/EventListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

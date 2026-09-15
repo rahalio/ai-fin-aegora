@@ -1,0 +1,162 @@
+openapi: 3.1.0
+info:
+  title: Aegora Models API
+  version: 0.1.0
+  description: Help/protect model registry and promotion (BR-7).
+  x-domain: models
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.aegora.local
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Models
+paths:
+  /v1/models:
+    get:
+      operationId: listModels
+      tags: [Models]
+      x-repository: Model
+      x-dynamodb:
+        entityType: MODEL
+        pkPatternTemplate: "MODEL#${modelId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        filterFields: [channel, status]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: channel
+          in: query
+          schema:
+            $ref: ./common/primitives.yaml#/components/schemas/Purpose
+      responses:
+        '200':
+          description: Models
+          content:
+            application/json:
+              schema:
+                $ref: ./models.schemas.yaml#/components/schemas/ModelListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createModel
+      tags: [Models]
+      x-repository: Model
+      x-dynamodb:
+        entityType: MODEL
+        pkPatternTemplate: "MODEL#${modelId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./models.schemas.yaml#/components/schemas/ModelCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./models.schemas.yaml#/components/schemas/ModelResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/models/{modelId}:
+    get:
+      operationId: getModel
+      tags: [Models]
+      x-repository: Model
+      x-dynamodb:
+        entityType: MODEL
+        pkPatternTemplate: "MODEL#${modelId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          schema:
+            $ref: ./models.schemas.yaml#/components/schemas/ModelId
+      responses:
+        '200':
+          description: Model
+          content:
+            application/json:
+              schema:
+                $ref: ./models.schemas.yaml#/components/schemas/ModelResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/models/{modelId}/promote:
+    post:
+      operationId: promoteModel
+      tags: [Models]
+      x-repository: Model
+      x-dynamodb:
+        entityType: MODEL
+        pkPatternTemplate: "MODEL#${modelId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          schema:
+            $ref: ./models.schemas.yaml#/components/schemas/ModelId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Promoted (blocked if lineage incomplete)
+          content:
+            application/json:
+              schema:
+                $ref: ./models.schemas.yaml#/components/schemas/ModelResponse
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/models/{modelId}/rollback:
+    post:
+      operationId: rollbackModel
+      tags: [Models]
+      x-repository: Model
+      x-dynamodb:
+        entityType: MODEL
+        pkPatternTemplate: "MODEL#${modelId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          schema:
+            $ref: ./models.schemas.yaml#/components/schemas/ModelId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Rolled back
+          content:
+            application/json:
+              schema:
+                $ref: ./models.schemas.yaml#/components/schemas/ModelResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

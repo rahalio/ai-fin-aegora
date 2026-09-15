@@ -1,0 +1,173 @@
+openapi: 3.1.0
+info:
+  title: Aegora Cases API
+  version: 0.1.0
+  description: Network intrusion investigation cases without marketing data merge (BR-10).
+  x-domain: cases
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.aegora.local
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Cases
+paths:
+  /v1/cases:
+    get:
+      operationId: listCases
+      tags: [Cases]
+      x-repository: Case
+      x-dynamodb:
+        entityType: CASE
+        pkPatternTemplate: "CASE#${caseId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "STATUS#${status}"
+        gsi1SKPatternTemplate: "CASE#${caseId}"
+        filterFields: [status]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            $ref: ./cases.schemas.yaml#/components/schemas/CaseStatus
+      responses:
+        '200':
+          description: Cases
+          content:
+            application/json:
+              schema:
+                $ref: ./cases.schemas.yaml#/components/schemas/CaseListResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: openCase
+      tags: [Cases]
+      x-repository: Case
+      x-dynamodb:
+        entityType: CASE
+        pkPatternTemplate: "CASE#${caseId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./cases.schemas.yaml#/components/schemas/CaseCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./cases.schemas.yaml#/components/schemas/CaseResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/cases/{caseId}:
+    get:
+      operationId: getCase
+      tags: [Cases]
+      x-repository: Case
+      x-dynamodb:
+        entityType: CASE
+        pkPatternTemplate: "CASE#${caseId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            $ref: ./cases.schemas.yaml#/components/schemas/CaseId
+      responses:
+        '200':
+          description: Case
+          content:
+            application/json:
+              schema:
+                $ref: ./cases.schemas.yaml#/components/schemas/CaseResponse
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/cases/{caseId}/assign:
+    post:
+      operationId: assignCase
+      tags: [Cases]
+      x-repository: Case
+      x-dynamodb:
+        entityType: CASE
+        pkPatternTemplate: "CASE#${caseId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            $ref: ./cases.schemas.yaml#/components/schemas/CaseId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./cases.schemas.yaml#/components/schemas/CaseAssign
+      responses:
+        '200':
+          description: Assigned
+          content:
+            application/json:
+              schema:
+                $ref: ./cases.schemas.yaml#/components/schemas/CaseResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/cases/{caseId}/close:
+    post:
+      operationId: closeCase
+      tags: [Cases]
+      x-repository: Case
+      x-dynamodb:
+        entityType: CASE
+        pkPatternTemplate: "CASE#${caseId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            $ref: ./cases.schemas.yaml#/components/schemas/CaseId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./cases.schemas.yaml#/components/schemas/CaseClose
+      responses:
+        '200':
+          description: Closed
+          content:
+            application/json:
+              schema:
+                $ref: ./cases.schemas.yaml#/components/schemas/CaseResponse
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

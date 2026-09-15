@@ -1,0 +1,223 @@
+openapi: 3.1.0
+info:
+  title: Offers schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    OfferId:
+      type: string
+      pattern: '^ofr_[0-9A-HJKMNP-TV-Z]{26}$'
+    OverrideId:
+      type: string
+      pattern: '^ovr_[0-9A-HJKMNP-TV-Z]{26}$'
+    ConsentRecordId:
+      type: string
+      pattern: '^cns_[0-9A-HJKMNP-TV-Z]{26}$'
+    OfferStatus:
+      type: string
+      enum: [ranked, delivered, blocked, overridden, heldForRm]
+    Offer:
+      type: object
+      required:
+        - offerId
+        - customerId
+        - status
+        - consentBasisPresent
+        - createdAt
+      properties:
+        offerId:
+          $ref: '#/components/schemas/OfferId'
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        productCode:
+          type: string
+        contentObjectId:
+          type: string
+          description: Reused content object id (not rebuilt copy).
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        predictedUptake:
+          type: number
+          format: double
+        constraintFlags:
+          type: array
+          items:
+            type: string
+            enum: [travel, protectHold, consentGap, policyBlock]
+        explanation:
+          type: string
+          description: RM-defensible segment/feature rationale.
+        consentBasisPresent:
+          type: boolean
+        consentRecordId:
+          $ref: '#/components/schemas/ConsentRecordId'
+        probabilityOfDefault:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Estimated PD as a probability, never a binary credibility badge.
+        policyBlockReason:
+          type: string
+        activeProtectHold:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OfferCreate:
+      type: object
+      required: [customerId]
+      properties:
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        productCode:
+          type: string
+        contentObjectId:
+          type: string
+        channel:
+          type: string
+    OfferDeliver:
+      type: object
+      properties:
+        channel:
+          type: string
+    Override:
+      type: object
+      required: [overrideId, offerId, reasonCode, action, createdAt]
+      properties:
+        overrideId:
+          $ref: '#/components/schemas/OverrideId'
+        offerId:
+          $ref: '#/components/schemas/OfferId'
+        reasonCode:
+          type: string
+        note:
+          type: string
+        action:
+          type: string
+          enum: [veto, soften, forceDeliver, defer]
+        createdAt:
+          type: string
+          format: date-time
+    OverrideCreate:
+      type: object
+      required: [reasonCode, action]
+      properties:
+        reasonCode:
+          type: string
+        note:
+          type: string
+        action:
+          type: string
+          enum: [veto, soften, forceDeliver, defer]
+    ConsentRecord:
+      type: object
+      required: [consentRecordId, customerId, purpose, basisPresent, createdAt]
+      properties:
+        consentRecordId:
+          $ref: '#/components/schemas/ConsentRecordId'
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        purpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        legalBasis:
+          type: string
+        basisPresent:
+          type: boolean
+        withdrawnAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ConsentRecordCreate:
+      type: object
+      required: [customerId, purpose, basisPresent]
+      properties:
+        customerId:
+          $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        purpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        legalBasis:
+          type: string
+        basisPresent:
+          type: boolean
+    OfferListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Offer'
+    OverrideListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Override'
+    ConsentListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsentRecord'
+    OfferResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Offer'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    OfferListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/OfferListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    OverrideResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Override'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    OverrideListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/OverrideListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    ConsentRecordResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ConsentRecord'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    ConsentListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ConsentListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

@@ -1,0 +1,92 @@
+openapi: 3.1.0
+info:
+  title: Policies schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    PolicyId:
+      type: string
+      pattern: '^pol_[0-9A-HJKMNP-TV-Z]{26}$'
+    PolicyEffect:
+      type: string
+      enum: [allow, deny, requireReview]
+    PolicyRule:
+      type: object
+      required:
+        - policyId
+        - name
+        - enabled
+        - fromPurpose
+        - toPurpose
+        - effect
+        - createdAt
+      properties:
+        policyId:
+          $ref: '#/components/schemas/PolicyId'
+        name:
+          type: string
+        enabled:
+          type: boolean
+        fromPurpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        toPurpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        effect:
+          $ref: '#/components/schemas/PolicyEffect'
+        approvalCount:
+          type: integer
+          minimum: 0
+        approved:
+          type: boolean
+        silentReuseDetected:
+          type: boolean
+        feeIncentiveNote:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PolicyRuleCreate:
+      type: object
+      required: [name, fromPurpose, toPurpose, effect]
+      properties:
+        name:
+          type: string
+        fromPurpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        toPurpose:
+          $ref: ./common/primitives.yaml#/components/schemas/Purpose
+        effect:
+          $ref: '#/components/schemas/PolicyEffect'
+        enabled:
+          type: boolean
+          default: true
+        feeIncentiveNote:
+          type: string
+    PolicyListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyRule'
+    PolicyResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PolicyRule'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    PolicyListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PolicyListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: Aegora Events API
+  version: 0.1.0
+  description: Purpose-tagged customer event ingestion and query (BR-1).
+  x-domain: events
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.aegora.local
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Events
+    description: Purpose-tagged customer event fabric
+paths:
+  /v1/events:
+    get:
+      operationId: listEvents
+      tags: [Events]
+      summary: List purpose-tagged events
+      x-repository: Event
+      x-dynamodb:
+        entityType: EVENT
+        pkPatternTemplate: "EVENT#${eventId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+        gsi1PKPatternTemplate: "CUSTOMER#${customerId}"
+        gsi1SKPatternTemplate: "EVENT#${eventId}"
+        filterFields: [purpose, eventType]
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: customerId
+          in: query
+          schema:
+            $ref: ./common/primitives.yaml#/components/schemas/CustomerId
+        - name: purpose
+          in: query
+          schema:
+            $ref: ./common/primitives.yaml#/components/schemas/Purpose
+      responses:
+        '200':
+          description: Event list
+          content:
+            application/json:
+              schema:
+                $ref: ./events.schemas.yaml#/components/schemas/EventListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: ingestEvent
+      tags: [Events]
+      summary: Ingest a purpose-tagged event
+      x-repository: Event
+      x-dynamodb:
+        entityType: EVENT
+        pkPatternTemplate: "EVENT#${eventId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+        createdAtField: createdAt
+        updatedAtField: updatedAt
+        softDeleteEnabled: false
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./events.schemas.yaml#/components/schemas/EventIngest
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: ./events.schemas.yaml#/components/schemas/EventResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/events/{eventId}:
+    get:
+      operationId: getEvent
+      tags: [Events]
+      summary: Get an event
+      x-repository: Event
+      x-dynamodb:
+        entityType: EVENT
+        pkPatternTemplate: "EVENT#${eventId}"
+        skPatternTemplate: METADATA
+        pkPattern: entity
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            $ref: ./events.schemas.yaml#/components/schemas/EventId
+      responses:
+        '200':
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: ./events.schemas.yaml#/components/schemas/EventResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth
